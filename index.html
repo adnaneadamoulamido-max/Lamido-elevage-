@@ -15,127 +15,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lamido Élevage | Gestion Chef</title>
+    <title>Lamido Élevage | Gestion en Temps Réel</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --primary: #0077b6; --secondary: #00b4d8; --dark: #03045e; --light: #caf0f8; --accent: #ffd700; }
-        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; color: #333; background-color: #f0f8ff; }
-
-        /* Bannière Dynamique */
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background-color: #f0f8ff; }
         .price-banner { background: var(--accent); color: var(--dark); text-align: center; padding: 10px; font-weight: bold; }
-
-        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { font-size: 1.5rem; font-weight: 600; color: var(--primary); }
-        
-        .hero { 
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=1350&q=80');
-            background-size: cover; background-position: center; height: 30vh; display: flex; justify-content: center; align-items: center; color: white;
-        }
-
-        .promo-section { padding: 40px 5%; text-align: center; }
-        .promo-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
-        
-        /* Panneau Admin (Caché par défaut) */
-        #adminPanel { 
-            display: none; background: #222; color: white; padding: 20px; 
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000; border-top: 3px solid var(--secondary);
-        }
-        .admin-input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: none; }
-        
-        .contact { padding: 50px 5%; background: var(--dark); color: white; text-align: center; }
-        .contact-form { max-width: 450px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; }
-        
-        button { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-main { background: var(--secondary); color: white; width: 100%; }
-        .btn-admin { background: #444; color: #ccc; font-size: 10px; margin-top: 20px; }
+        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .hero { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=1350&q=80');
+                background-size: cover; height: 30vh; display: flex; align-items: center; justify-content: center; color: white; text-align: center; }
+        .promo-card { background: white; padding: 30px; border-radius: 20px; max-width: 600px; margin: 40px auto; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .price-tag { background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; display: inline-block; font-weight: bold; margin-top: 10px; }
+        #adminPanel { display: none; background: #111; color: white; padding: 20px; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; z-index: 1000; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-order { background: var(--secondary); color: white; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="price-banner" id="bannerText">
-        🔥 OFFRE SPÉCIALE : Prix imbattables selon les périodes de fêtes !
+    <div class="price-banner" id="displayBanner">Chargement des offres...</div>
+
+    <header><div style="font-weight:600; color:var(--primary);">LAMIDO ÉLEVAGE 🐔</div></header>
+
+    <section class="hero"><h1>Volailles de Qualité</h1></section>
+
+    <section class="promo-card">
+        <h2 id="displayTitle">✨ Nos Produits</h2>
+        <p id="displayDesc">Élevage sain pour vos fêtes et cérémonies.</p>
+        <div class="price-tag" id="displayPrice">Vérification du prix...</div>
+        <button class="btn-order" onclick="window.location.href='#contact'">PASSER COMMANDE</button>
+    </section>
+
+    <div style="text-align: center; margin-bottom: 50px;">
+        <button onclick="accessAdmin()" style="background:none; color:#bbb; font-size:12px;">Accès Chef (Admin)</button>
     </div>
 
-    <header>
-        <div class="logo">LAMIDO ÉLEVAGE </div>
-    </header>
-
-    <section class="hero">
-        <h1 id="mainTitle">Volailles de Qualité Supérieure</h1>
-    </section>
-
-    <section class="promo-section">
-        <div class="promo-card">
-            <h2 id="promoTitle">✨ Nos Offres du Moment</h2>
-            <p id="promoDesc">Nos poulets sont élevés avec soin pour vos cérémonies.</p>
-            <div style="background: var(--primary); color: white; padding: 10px; border-radius: 50px; display: inline-block;" id="priceTag">
-                Prix réduits en ce moment !
-            </div>
-        </div>
-    </section>
-
-    <section class="contact">
-        <h2>Commander</h2>
-        <div class="contact-form">
-            <input type="text" id="nom" placeholder="Votre Nom">
-            <textarea id="commande" placeholder="Votre message..."></textarea>
-            <button class="btn-main" onclick="envoyerVersTelegram()">ENVOYER MA DEMANDE</button>
-        </div>
-        <button class="btn-admin" onclick="accessAdmin()">Accès Chef (Admin)</button>
-    </section>
-
     <div id="adminPanel">
-        <h3>🛠 PANNEAU DE CONTRÔLE (CHEF)</h3>
-        <label>Texte de la bannière jaune :</label>
-        <input type="text" id="editBanner" class="admin-input">
-        
-        <label>Prix affiché (Tag bleu) :</label>
-        <input type="text" id="editPrice" class="admin-input">
-
-        <button onclick="updateSite()" style="background: #28a745; color: white; width: 100%; margin-top: 10px;">ENREGISTRER LES MODIFICATIONS</button>
-        <button onclick="closeAdmin()" style="background: #dc3545; color: white; width: 100%; margin-top: 5px;">QUITTER</button>
+        <h3>🛠 CONFIGURATION DU CHEF</h3>
+        <input type="text" id="inBanner" placeholder="Texte de la bannière">
+        <input type="text" id="inPrice" placeholder="Prix ou Promo (ex: 3500 FCFA)">
+        <button onclick="saveChanges()" style="background: #28a745; color: white; width: 100%;">ENREGISTRER POUR TOUS LES CLIENTS</button>
+        <button onclick="document.getElementById('adminPanel').style.display='none'" style="background: #555; color: white; width: 100%; margin-top: 5px;">FERMER</button>
     </div>
 
     <script>
-        const TOKEN = "8359189578:AAGNnt26ArU9GPPkZoT5Mf3bFxI8EO-Y9Vs";
-        const ID = "7853932032";
-        const ADMIN_CODE = "1234"; // TON CODE SECRET ICI
+        // CONFIGURATION FIREBASE
+        const firebaseConfig = {
+            databaseURL: "https://lamido-eleva-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // Fonction pour accéder à l'admin
-        function accessAdmin() {
-            let code = prompt("Entrez le code secret du Chef :");
-            if (code === ADMIN_CODE) {
-                document.getElementById('adminPanel').style.display = "block";
-                // Remplir les champs avec les valeurs actuelles
-                document.getElementById('editBanner').value = document.getElementById('bannerText').innerText;
-                document.getElementById('editPrice').value = document.getElementById('priceTag').innerText;
-            } else {
-                alert("Code incorrect ! Accès refusé.");
+        // 1. RÉCUPÉRATION DES DONNÉES (LECTURE)
+        db.ref('siteData').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('displayBanner').innerText = data.banner;
+                document.getElementById('displayPrice').innerText = data.price;
             }
+        });
+
+        // 2. ACCÈS ADMIN
+        function accessAdmin() {
+            let code = prompt("Code secret du Chef :");
+            if(code === "1234") { // Changez "1234" par votre code
+                document.getElementById('adminPanel').style.display = "block";
+            } else { alert("Accès refusé"); }
         }
 
-        // Fonction pour mettre à jour le site sans recharger
-        function updateSite() {
-            document.getElementById('bannerText').innerText = document.getElementById('editBanner').value;
-            document.getElementById('priceTag').innerText = document.getElementById('editPrice').value;
-            alert("Modifications appliquées sur l'écran !");
-            closeAdmin();
-        }
+        // 3. ENREGISTREMENT DANS LA BASE (ÉCRITURE)
+        function saveChanges() {
+            const newBanner = document.getElementById('inBanner').value;
+            const newPrice = document.getElementById('inPrice').value;
 
-        function closeAdmin() { document.getElementById('adminPanel').style.display = "none"; }
+            if(!newBanner || !newPrice) return alert("Remplissez les champs");
 
-        async function envoyerVersTelegram() {
-            const nom = document.getElementById('nom').value;
-            const msg = document.getElementById('commande').value;
-            const texteFinal = `🐔 **COMMANDE LAMIDO**\n👤 Client: ${nom}\n📝 Message: ${msg}`;
-            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({chat_id: ID, text: texteFinal})
+            db.ref('siteData').set({
+                banner: newBanner,
+                price: newPrice
+            }).then(() => {
+                alert("Site mis à jour avec succès !");
+                document.getElementById('adminPanel').style.display = "none";
             });
-            alert("Envoyé !");
         }
     </script>
 </body>
 </html>
+
 
